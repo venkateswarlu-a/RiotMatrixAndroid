@@ -26,6 +26,8 @@ import im.vector.matrix.android.internal.database.model.EventEntityFields
 import im.vector.matrix.android.internal.database.model.RoomSummaryEntity
 import im.vector.matrix.android.internal.database.query.where
 import io.realm.Realm
+import io.realm.RealmQuery
+import io.realm.Sort
 
 internal class RoomMembers(private val realm: Realm,
                            private val roomId: String
@@ -35,10 +37,21 @@ internal class RoomMembers(private val realm: Realm,
         RoomSummaryEntity.where(realm, roomId).findFirst()
     }
 
-    fun getLoaded(): Map<String, RoomMember> {
+    fun queryRoomMembersEvent(): RealmQuery<EventEntity> {
         return EventEntity
                 .where(realm, roomId, EventType.STATE_ROOM_MEMBER)
-                .sort(EventEntityFields.STATE_INDEX)
+                .sort(EventEntityFields.STATE_INDEX, Sort.DESCENDING)
+                .distinct(EventEntityFields.STATE_KEY)
+                .isNotNull(EventEntityFields.CONTENT)
+    }
+
+    fun queryRoomMemberEvent(userId: String): RealmQuery<EventEntity> {
+        return queryRoomMembersEvent()
+                .equalTo(EventEntityFields.STATE_KEY, userId)
+    }
+
+    fun getLoaded(): Map<String, RoomMember> {
+        return queryRoomMembersEvent()
                 .findAll()
                 .map { it.asDomain() }
                 .associateBy { it.stateKey!! }
@@ -48,12 +61,12 @@ internal class RoomMembers(private val realm: Realm,
 
     fun getNumberOfJoinedMembers(): Int {
         return roomSummary?.joinedMembersCount
-               ?: getLoaded().filterValues { it.membership == Membership.JOIN }.size
+                ?: getLoaded().filterValues { it.membership == Membership.JOIN }.size
     }
 
     fun getNumberOfInvitedMembers(): Int {
         return roomSummary?.invitedMembersCount
-               ?: getLoaded().filterValues { it.membership == Membership.INVITE }.size
+                ?: getLoaded().filterValues { it.membership == Membership.INVITE }.size
     }
 
     fun getNumberOfMembers(): Int {

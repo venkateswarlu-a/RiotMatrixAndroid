@@ -27,3 +27,8 @@ internal fun ReadReceiptEntity.Companion.where(realm: Realm, roomId: String, use
             .equalTo(ReadReceiptEntityFields.ROOM_ID, roomId)
             .equalTo(ReadReceiptEntityFields.USER_ID, userId)
 }
+
+internal fun ReadReceiptEntity.Companion.where(realm: Realm, roomId: String): RealmQuery<ReadReceiptEntity> {
+    return realm.where<ReadReceiptEntity>()
+            .equalTo(ReadReceiptEntityFields.ROOM_ID, roomId)
+}

@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2019 New Vector Ltd
  *
@@ -17,6 +18,7 @@
 package im.vector.matrix.rx
 
 import im.vector.matrix.android.api.session.room.Room
+import im.vector.matrix.android.api.session.room.model.ReadReceipt
 import im.vector.matrix.android.api.session.room.model.RoomSummary
 import im.vector.matrix.android.api.session.room.timeline.TimelineData
 import io.reactivex.Observable
@@ -29,6 +31,10 @@ class RxRoom(private val room: Room) {
 
     fun timeline(eventId: String? = null): Observable<TimelineData> {
         return room.timeline(eventId).asObservable()
+    }
+
+    fun liveReadReceipts(): Observable<List<ReadReceipt>> {
+        return room.readReceipts().asObservable()
     }
 
 }

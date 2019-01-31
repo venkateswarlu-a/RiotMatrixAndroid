@@ -16,17 +16,23 @@
 
 package im.vector.matrix.android.internal.session.room.read
 
+import androidx.lifecycle.LiveData
 import com.zhuinden.monarchy.Monarchy
 import im.vector.matrix.android.api.MatrixCallback
+import im.vector.matrix.android.api.session.room.members.RoomMembersService
+import im.vector.matrix.android.api.session.room.model.ReadReceipt
 import im.vector.matrix.android.api.session.room.read.ReadService
 import im.vector.matrix.android.internal.database.model.EventEntity
+import im.vector.matrix.android.internal.database.model.ReadReceiptEntity
 import im.vector.matrix.android.internal.database.query.latestEvent
+import im.vector.matrix.android.internal.database.query.where
 import im.vector.matrix.android.internal.task.TaskExecutor
 import im.vector.matrix.android.internal.task.configureWith
 import im.vector.matrix.android.internal.util.fetchCopied
 
 internal class DefaultReadService(private val roomId: String,
                                   private val monarchy: Monarchy,
+                                  private val roomMembersService: RoomMembersService,
                                   private val setReadMarkersTask: SetReadMarkersTask,
                                   private val taskExecutor: TaskExecutor) : ReadService {
 
@@ -50,5 +56,20 @@ internal class DefaultReadService(private val roomId: String,
         return monarchy.fetchCopied { EventEntity.latestEvent(it, roomId) }
     }
 
+    override fun readReceipts(): LiveData<List<ReadReceipt>> {
+        return monarchy.findAllMappedWithChanges(
+                { realm -> ReadReceiptEntity.where(realm, roomId) },
+                {
+                    val roomMember = roomMembersService.getRoomMember(it.userId)
+                    ReadReceipt(roomMember, it.eventId, it.originServerTs.toLong())
+                }
+        )
+    }
 
+    override fun readReceipt(eventId: String): ReadReceipt? {
+        val readReceipt = monarchy.fetchCopied { ReadReceiptEntity.where(it, roomId).findFirst() }
+                ?: return null
+        val roomMember = roomMembersService.getRoomMember(readReceipt.userId)
+        return ReadReceipt(roomMember, readReceipt.eventId, readReceipt.originServerTs.toLong())
+    }
 }
