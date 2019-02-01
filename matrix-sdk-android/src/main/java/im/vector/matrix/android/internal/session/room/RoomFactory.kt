@@ -22,6 +22,7 @@ import im.vector.matrix.android.internal.session.room.members.DefaultRoomMembers
 import im.vector.matrix.android.internal.session.room.members.LoadRoomMembersTask
 import im.vector.matrix.android.internal.session.room.members.RoomMemberExtractor
 import im.vector.matrix.android.internal.session.room.read.DefaultReadService
+import im.vector.matrix.android.internal.session.room.read.ReadServiceListeners
 import im.vector.matrix.android.internal.session.room.read.SetReadMarkersTask
 import im.vector.matrix.android.internal.session.room.send.DefaultSendService
 import im.vector.matrix.android.internal.session.room.send.EventFactory
@@ -49,6 +50,7 @@ internal class RoomFactory(private val loadRoomMembersTask: LoadRoomMembersTask,
         val sendService = DefaultSendService(roomId, eventFactory, monarchy)
         val roomMembersService = DefaultRoomMembersService(roomId, monarchy, loadRoomMembersTask, taskExecutor)
         val readService = DefaultReadService(roomId, monarchy, roomMembersService, setReadMarkersTask, taskExecutor)
+        val readServiceListeners = ReadServiceListeners(roomId, monarchy)
 
         return DefaultRoom(
                 roomId,
@@ -56,6 +58,7 @@ internal class RoomFactory(private val loadRoomMembersTask: LoadRoomMembersTask,
                 timelineService,
                 sendService,
                 readService,
+                readServiceListeners,
                 roomMembersService
         )
     }

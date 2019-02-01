@@ -37,7 +37,7 @@ internal class DefaultReadService(private val roomId: String,
                                   private val taskExecutor: TaskExecutor) : ReadService {
 
     override fun markAllAsRead(callback: MatrixCallback<Void>) {
-        val latestEvent = getLatestEvent()
+        val latestEvent = monarchy.fetchCopied { EventEntity.latestEvent(it, roomId) }
         val params = SetReadMarkersTask.Params(roomId, fullyReadEventId = latestEvent?.eventId, readReceiptEventId = latestEvent?.eventId)
         setReadMarkersTask.configureWith(params).executeBy(taskExecutor)
     }
@@ -52,10 +52,6 @@ internal class DefaultReadService(private val roomId: String,
         setReadMarkersTask.configureWith(params).executeBy(taskExecutor)
     }
 
-    private fun getLatestEvent(): EventEntity? {
-        return monarchy.fetchCopied { EventEntity.latestEvent(it, roomId) }
-    }
-
     override fun readReceipts(): LiveData<List<ReadReceipt>> {
         return monarchy.findAllMappedWithChanges(
                 { realm -> ReadReceiptEntity.where(realm, roomId) },
@@ -68,7 +64,7 @@ internal class DefaultReadService(private val roomId: String,
 
     override fun readReceipt(eventId: String): ReadReceipt? {
         val readReceipt = monarchy.fetchCopied { ReadReceiptEntity.where(it, roomId).findFirst() }
-                ?: return null
+                          ?: return null
         val roomMember = roomMembersService.getRoomMember(readReceipt.userId)
         return ReadReceipt(roomMember, readReceipt.eventId, readReceipt.originServerTs.toLong())
     }

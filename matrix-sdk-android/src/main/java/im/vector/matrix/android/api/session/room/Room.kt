@@ -22,7 +22,6 @@ import im.vector.matrix.android.api.session.room.model.RoomSummary
 import im.vector.matrix.android.api.session.room.read.ReadService
 import im.vector.matrix.android.api.session.room.send.SendService
 import im.vector.matrix.android.api.session.room.timeline.TimelineService
-import im.vector.matrix.android.api.util.Cancelable
 
 /**
  * This interface defines methods to interact within a room.
@@ -39,5 +38,27 @@ interface Room : TimelineService, SendService, ReadService, RoomMembersService {
      * You can observe this summary to get dynamic data from this room.
      */
     val roomSummary: LiveData<RoomSummary>
+
+    /**
+     * Add a listener to the room.
+     * @param listener the listener to add.
+     */
+    fun addListener(listener: Listener)
+
+    /**
+     * Remove a listener from the room.
+     * @param listener the listener to remove.
+     */
+    fun removeListener(listener: Listener)
+
+    /**
+     * A listener defined at the room level to listen for some events from the different room services.
+     */
+    interface Listener : ReadService.Listener {
+
+        override fun onReadReceiptsUpdated() {
+            // no-op
+        }
+    }
 
 }

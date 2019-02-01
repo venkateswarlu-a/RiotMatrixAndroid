@@ -23,18 +23,20 @@ import im.vector.matrix.android.api.Matrix
 import im.vector.matrix.android.api.MatrixCallback
 import im.vector.matrix.android.api.session.Session
 import im.vector.matrix.android.api.session.events.model.Event
+import im.vector.matrix.android.api.session.room.Room
 import im.vector.matrix.rx.rx
 import im.vector.riotredesign.core.extensions.lastMinBy
 import im.vector.riotredesign.core.platform.RiotViewModel
 import im.vector.riotredesign.features.home.room.VisibleRoomHolder
 import io.reactivex.rxkotlin.subscribeBy
 import org.koin.android.ext.android.get
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 class RoomDetailViewModel(initialState: RoomDetailViewState,
                           private val session: Session,
                           private val visibleRoomHolder: VisibleRoomHolder
-) : RiotViewModel<RoomDetailViewState>(initialState) {
+) : RiotViewModel<RoomDetailViewState>(initialState), Room.Listener {
 
     private val room = session.getRoom(initialState.roomId)!!
     private val roomId = initialState.roomId
@@ -57,6 +59,7 @@ class RoomDetailViewModel(initialState: RoomDetailViewState,
         observeTimeline()
         observeDisplayedEvents()
         room.loadRoomMembersIfNeeded()
+        room.addListener(this)
     }
 
     fun process(action: RoomDetailActions) {
@@ -65,6 +68,17 @@ class RoomDetailViewModel(initialState: RoomDetailViewState,
             is RoomDetailActions.IsDisplayed    -> handleIsDisplayed()
             is RoomDetailActions.EventDisplayed -> handleEventDisplayed(action)
         }
+    }
+
+    override fun onCleared() {
+        room.removeListener(this)
+        super.onCleared()
+    }
+
+    // Room.Listener *******************************************************************************
+
+    override fun onReadReceiptsUpdated() {
+        Timber.v("On read receipts updated")
     }
 
     // PRIVATE METHODS *****************************************************************************

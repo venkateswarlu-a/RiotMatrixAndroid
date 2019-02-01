@@ -29,21 +29,25 @@ import im.vector.matrix.android.internal.database.mapper.asDomain
 import im.vector.matrix.android.internal.database.model.RoomSummaryEntity
 import im.vector.matrix.android.internal.database.model.RoomSummaryEntityFields
 import im.vector.matrix.android.internal.database.query.where
+import im.vector.matrix.android.internal.session.room.members.DefaultRoomMembersService
+import im.vector.matrix.android.internal.session.room.read.DefaultReadService
+import im.vector.matrix.android.internal.session.room.read.ReadServiceListeners
+import im.vector.matrix.android.internal.session.room.send.DefaultSendService
+import im.vector.matrix.android.internal.session.room.timeline.DefaultTimelineService
 
-internal data class DefaultRoom(
+internal class DefaultRoom(
         override val roomId: String,
         private val monarchy: Monarchy,
-        private val timelineService: TimelineService,
-        private val sendService: SendService,
-        private val readService: ReadService,
-        private val roomMembersService: RoomMembersService
-
-
+        private val timelineService: DefaultTimelineService,
+        private val sendService: DefaultSendService,
+        private val readService: DefaultReadService,
+        private val readServiceListeners: ReadServiceListeners,
+        private val roomMembersService: DefaultRoomMembersService
 ) : Room,
-        TimelineService by timelineService,
-        SendService by sendService,
-        ReadService by readService,
-        RoomMembersService by roomMembersService {
+    TimelineService by timelineService,
+    SendService by sendService,
+    ReadService by readService,
+    RoomMembersService by roomMembersService {
 
     override val roomSummary: LiveData<RoomSummary> by lazy {
         val liveData = monarchy
@@ -56,5 +60,12 @@ internal data class DefaultRoom(
         }
     }
 
+    override fun addListener(listener: Room.Listener) {
+        readServiceListeners.addListener(listener)
+    }
+
+    override fun removeListener(listener: Room.Listener) {
+        readServiceListeners.removeListener(listener)
+    }
 
 }
