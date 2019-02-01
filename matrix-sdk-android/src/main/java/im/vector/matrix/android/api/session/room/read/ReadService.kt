@@ -46,10 +46,10 @@ interface ReadService {
     fun readReceipts(): LiveData<List<ReadReceipt>>
 
     /**
-     * @param eventId to look for receipt.
-     * * @return the receipt associated or null
+     * @param eventId to look for receipts.
+     * * @return the list of receipts associated with the eventId
      */
-    fun readReceipt(eventId: String): ReadReceipt?
+    fun readReceipts(eventId: String): List<ReadReceipt>
 
     /**
      * A listener defined at the room level to listen for some read events.

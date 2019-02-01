@@ -60,13 +60,4 @@
         app:layout_constraintTop_toBottomOf="@+id/messageMemberNameView"
         tools:text="Alright finished work, heading there in about 20 mins… Ping me when you’re outside" />
 
-    <include
-        android:id="@+id/messageReadReceipts"
-        layout="@layout/item_timeline_read_receipts"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/messageTextView"/>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

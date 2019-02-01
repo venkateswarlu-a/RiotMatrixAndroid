@@ -24,6 +24,7 @@ import im.vector.matrix.android.api.session.room.model.ReadReceipt
 import im.vector.matrix.android.api.session.room.read.ReadService
 import im.vector.matrix.android.internal.database.model.EventEntity
 import im.vector.matrix.android.internal.database.model.ReadReceiptEntity
+import im.vector.matrix.android.internal.database.model.ReadReceiptEntityFields
 import im.vector.matrix.android.internal.database.query.latestEvent
 import im.vector.matrix.android.internal.database.query.where
 import im.vector.matrix.android.internal.task.TaskExecutor
@@ -62,10 +63,16 @@ internal class DefaultReadService(private val roomId: String,
         )
     }
 
-    override fun readReceipt(eventId: String): ReadReceipt? {
-        val readReceipt = monarchy.fetchCopied { ReadReceiptEntity.where(it, roomId).findFirst() }
-                          ?: return null
-        val roomMember = roomMembersService.getRoomMember(readReceipt.userId)
-        return ReadReceipt(roomMember, readReceipt.eventId, readReceipt.originServerTs.toLong())
+    override fun readReceipts(eventId: String): List<ReadReceipt> {
+        return monarchy.fetchAllMappedSync(
+                { realm ->
+                    ReadReceiptEntity.where(realm, roomId)
+                            .equalTo(ReadReceiptEntityFields.EVENT_ID, eventId)
+                },
+                {
+                    val roomMember = roomMembersService.getRoomMember(it.userId)
+                    ReadReceipt(roomMember, it.eventId, it.originServerTs.toLong())
+                }
+        )
     }
 }

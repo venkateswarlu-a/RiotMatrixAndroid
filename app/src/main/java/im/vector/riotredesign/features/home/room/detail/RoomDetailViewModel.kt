@@ -89,6 +89,7 @@ class RoomDetailViewModel(initialState: RoomDetailViewState,
 
     private fun handleEventDisplayed(action: RoomDetailActions.EventDisplayed) {
         displayedEventsObservable.accept(action)
+
     }
 
     private fun handleIsDisplayed() {
@@ -102,6 +103,18 @@ class RoomDetailViewModel(initialState: RoomDetailViewState,
                 .buffer(1, TimeUnit.SECONDS)
                 .filter { it.isNotEmpty() }
                 .subscribeBy(onNext = { actions ->
+                    val eventIds = actions.mapNotNull { it.event.root.eventId }
+                    withState { state ->
+                        val newMapOfReadReceipts = HashMap(state.readReceiptsForEventId)
+                        eventIds.forEach {
+                            if (newMapOfReadReceipts.containsKey(it).not()) {
+                                val readReceipts = room.readReceipts(it)
+                                newMapOfReadReceipts[it] = readReceipts
+                            }
+                        }
+                        setState { copy(readReceiptsForEventId = newMapOfReadReceipts) }
+                    }
+
                     val mostRecentEvent = actions.lastMinBy { it.index }
                     mostRecentEvent?.event?.root?.eventId?.let { eventId ->
                         room.setReadReceipt(eventId, callback = object : MatrixCallback<Void> {})
