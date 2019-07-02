@@ -56,6 +56,6 @@ private class LiveDataObservable<T>(
     }
 }
 
-fun <T> LiveData<T>.asObservable(): Observable<T> {
-    return LiveDataObservable(this)
+fun <T> LiveData<T>.asObservable(defaultValue: T? = null): Observable<T> {
+    return LiveDataObservable(this, defaultValue)
 }

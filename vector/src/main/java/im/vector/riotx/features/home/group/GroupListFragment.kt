@@ -54,6 +54,7 @@ class GroupListFragment : VectorBaseFragment(), GroupSummaryController.Callback 
         super.onActivityCreated(savedInstanceState)
         groupController.callback = this
         stateView.contentView = groupListEpoxyRecyclerView
+        groupListEpoxyRecyclerView.setHasFixedSize(true)
         groupListEpoxyRecyclerView.setController(groupController)
         viewModel.subscribe { renderState(it) }
         viewModel.openGroupLiveData.observeEvent(this) {

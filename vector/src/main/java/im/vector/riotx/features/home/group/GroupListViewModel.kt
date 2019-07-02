@@ -26,11 +26,16 @@ import com.squareup.inject.assisted.Assisted
 import com.squareup.inject.assisted.AssistedInject
 import im.vector.matrix.android.api.session.Session
 import im.vector.matrix.android.api.session.group.model.GroupSummary
+import im.vector.matrix.android.api.session.user.model.User
 import im.vector.matrix.rx.rx
 import im.vector.riotx.R
 import im.vector.riotx.core.platform.VectorViewModel
 import im.vector.riotx.core.resources.StringProvider
 import im.vector.riotx.core.utils.LiveEvent
+import io.reactivex.Observable
+import io.reactivex.functions.BiFunction
+import timber.log.Timber
+import java.util.concurrent.TimeUnit
 
 const val ALL_COMMUNITIES_GROUP_ID = "ALL_COMMUNITIES_GROUP_ID"
 
@@ -89,22 +94,21 @@ class GroupListViewModel @AssistedInject constructor(@Assisted initialState: Gro
     }
 
     private fun observeGroupSummaries() {
-        session
-                .rx()
-                .liveGroupSummaries()
-                .map {
-                    val myUser = session.getUser(session.sessionParams.credentials.userId)
+        Observable.combineLatest<User?, List<GroupSummary>, List<GroupSummary>>(
+                session.rx().liveUser(session.myUserId),
+                session.rx().liveGroupSummaries(),
+                BiFunction { user, groupSummary ->
                     val allCommunityGroup = GroupSummary(
                             groupId = ALL_COMMUNITIES_GROUP_ID,
                             displayName = stringProvider.getString(R.string.group_all_communities),
-                            avatarUrl = myUser?.avatarUrl ?: "")
-                    listOf(allCommunityGroup) + it
+                            avatarUrl = user.avatarUrl ?: "")
+                    listOf(allCommunityGroup) + groupSummary
                 }
-                .execute { async ->
-                    // TODO Phase2 Handle the case where the selected group is deleted on another client
-                    val newSelectedGroup = selectedGroup ?: async()?.firstOrNull()
-                    copy(asyncGroups = async, selectedGroup = newSelectedGroup)
-                }
+        ).execute { async ->
+            // TODO Phase2 Handle the case where the selected group is deleted on another client
+            val newSelectedGroup = selectedGroup ?: async()?.firstOrNull()
+            copy(asyncGroups = async, selectedGroup = newSelectedGroup)
+        }
     }
 
 
