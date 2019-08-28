@@ -24,6 +24,7 @@ import im.vector.matrix.android.api.session.room.RoomService
 import im.vector.matrix.android.api.session.room.model.RoomSummary
 import im.vector.matrix.android.api.session.room.model.VersioningState
 import im.vector.matrix.android.api.session.room.model.create.CreateRoomParams
+import im.vector.matrix.android.api.session.room.read.ReadService
 import im.vector.matrix.android.api.util.Cancelable
 import im.vector.matrix.android.internal.database.mapper.RoomSummaryMapper
 import im.vector.matrix.android.internal.database.model.RoomEntity
@@ -69,7 +70,7 @@ internal class DefaultRoomService @Inject constructor(private val monarchy: Mona
                             .isNotEmpty(RoomSummaryEntityFields.DISPLAY_NAME)
                             .notEqualTo(RoomSummaryEntityFields.VERSIONING_STATE_STR, VersioningState.UPGRADED_ROOM_JOINED.name)
                 },
-                { roomSummaryMapper.map(it) }
+                { roomSummaryMapper.map(it, getRoom(it.roomId)) }
         )
     }
 

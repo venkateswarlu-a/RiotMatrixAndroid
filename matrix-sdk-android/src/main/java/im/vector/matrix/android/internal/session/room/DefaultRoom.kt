@@ -58,7 +58,7 @@ internal class DefaultRoom @Inject constructor(override val roomId: String,
             RoomSummaryEntity.where(realm, roomId).isNotEmpty(RoomSummaryEntityFields.DISPLAY_NAME)
         }
         return Transformations.map(liveRealmData) { results ->
-            val roomSummaries = results.map { roomSummaryMapper.map(it) }
+            val roomSummaries = results.map { roomSummaryMapper.map(it, this) }
 
             if (roomSummaries.isEmpty()) {
                 // Create a dummy RoomSummary to avoid Crash during Sign Out or clear cache
@@ -72,7 +72,7 @@ internal class DefaultRoom @Inject constructor(override val roomId: String,
     override fun roomSummary(): RoomSummary? {
         return monarchy.fetchAllMappedSync(
                 { realm -> RoomSummaryEntity.where(realm, roomId).isNotEmpty(RoomSummaryEntityFields.DISPLAY_NAME) },
-                { roomSummaryMapper.map(it) }
+                { roomSummaryMapper.map(it, this) }
         ).firstOrNull()
     }
 

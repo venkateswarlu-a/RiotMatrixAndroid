@@ -85,7 +85,7 @@ internal class RoomSummaryUpdater @Inject constructor(private val credentials: C
             roomSummaryEntity.membership = membership
         }
 
-        val latestEvent = TimelineEventEntity.latestEvent(realm, roomId, includesSending = true, includedTypes = PREVIEWABLE_TYPES)
+        val latestPreviewableEvent = TimelineEventEntity.latestEvent(realm, roomId, includesSending = true, includedTypes = PREVIEWABLE_TYPES)
         val lastTopicEvent = EventEntity.where(realm, roomId, EventType.STATE_ROOM_TOPIC).prev()?.asDomain()
 
         val otherRoomMembers = RoomMembers(realm, roomId)
@@ -98,7 +98,7 @@ internal class RoomSummaryUpdater @Inject constructor(private val credentials: C
         roomSummaryEntity.displayName = roomDisplayNameResolver.resolve(roomId).toString()
         roomSummaryEntity.avatarUrl = roomAvatarResolver.resolve(roomId)
         roomSummaryEntity.topic = lastTopicEvent?.content.toModel<RoomTopicContent>()?.topic
-        roomSummaryEntity.latestEvent = latestEvent
+        roomSummaryEntity.latestPreviewableEvent = latestPreviewableEvent
         roomSummaryEntity.otherMemberIds.clear()
         roomSummaryEntity.otherMemberIds.addAll(otherRoomMembers)
 
